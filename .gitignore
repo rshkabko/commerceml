@@ -1,0 +1,5 @@
+.DS_Store
+error_log
+yarn-error.log
+/.idea
+/.vscode

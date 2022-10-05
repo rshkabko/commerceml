@@ -1,0 +1,22 @@
+{
+    "name": "flamix/commerceml",
+    "description": "Flamix package to use CommerceML",
+    "homepage": "https://flamix.solutions/bitrix24/integrations/site/products/",
+    "authors": [
+        {
+            "name": "Roman Shkabko",
+            "email": "r.shkabko@flamix.email",
+            "homepage": "http://flamix.software"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "ext-json": "*",
+        "monolog/monolog": "^2.0"
+    },
+    "autoload":{
+        "psr-4":{
+            "Flamix\\":"src"
+        }
+    }
+}
