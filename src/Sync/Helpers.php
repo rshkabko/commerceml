@@ -1,8 +1,26 @@
-<?php namespace Flamix\Sync;
+<?php
 
-class Helpers
-{
-    public static function response(array|string $result)
+if (!function_exists('tap')) {
+    function tap($value, $callback)
+    {
+        $callback($value);
+        return $value;
+    }
+}
+
+if (!function_exists('commerceml_log')) {
+    function commerceml_log(string $message, array $context = []): \Monolog\Logger
+    {
+        $date = date('Y-m-d');
+        $log = new \Monolog\Logger('commerceml');
+        $log->pushHandler(new StreamHandler(DIR . '/../../../../logs/' . $date . '-info-' . md5($date) . '.log', \Monolog\Logger::DEBUG));
+        $log->info($message, $context);
+        return $log;
+    }
+}
+
+if (!function_exists('commerceml_response')) {
+    function commerceml_response(array|string $result)
     {
         if(is_array($result))
             echo implode(PHP_EOL, $result);
@@ -11,22 +29,22 @@ class Helpers
 
         die();
     }
+}
 
-    public static function sendResponseByType(string $type = 'failure', string $description = '')
+if (!function_exists('commerceml_response_by_type')) {
+    function commerceml_response_by_type(string $type = 'failure', string $description = '')
     {
-        // TODO: Change to logger
-        log()->info('In 1C was send a response of the type:' . $type);
-        $headers= [
+        commerceml_log()->info('In 1C was send a response of the type:' . $type);
+        $headers = [
             'Content-Type' => 'Content-Type: text/plain; charset=utf-8',
         ];
 
-        foreach($headers as $header) {
+        foreach($headers as $header)
             header($header);
-        }
 
         if(in_array($type, ['success', 'progress']))
-            self::response([$type, $description]);
+            commerceml_response([$type, $description]);
 
-        self::response(['failure', $description]);
+        commerceml_response(['failure', $description]);
     }
 }
