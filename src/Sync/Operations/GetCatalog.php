@@ -2,9 +2,6 @@
 
 namespace Flamix\Sync\Operations;
 
-use Flamix\Sync\Woo\Categories;
-use Flamix\Sync\Woo\Attributes;
-use Flamix\Sync\Woo\Products;
 use Flamix\Sync\OneC\Converter;
 use Flamix\Sync\OneC\CommerceML;
 use Flamix\Sync\Operations\Traits\SessionPaginator;
@@ -13,22 +10,24 @@ class GetCatalog
 {
     use SessionPaginator;
 
-    private object $receiver;
-
-    public function __construct($receiver)
+    /**
+     * Main query functional
+     *
+     * @param string $product_callback
+     * @param string $category_callback
+     * @param string $attribute_callback
+     * @return void
+     * @throws \Exception
+     */
+    public function query(string $product_callback, string $category_callback, string $attribute_callback)
     {
-        $this->receiver = $receiver;
-    }
-
-    public function query()
-    {
-        $this->setElementsCount(Products::productCount());
+        $this->setElementsCount($product_callback::productCount());
         $description = 'Uploaded ' . $this->currentElement() . ' of ' . $this->getElementsCount() . ' products from the site';
 
         if ($this->isStart()) {
             // Step 0: Property && Categories
-            $categories = Converter::replaceToCyrillic(Categories::get(), Converter::getTranslate('category'), 'categories');
-            $attributes = Converter::replaceToCyrillic(Attributes::get(), Converter::getTranslate('properties'));
+            $categories = Converter::replaceToCyrillic($category_callback::get(), Converter::getTranslate('category'), 'categories');
+            $attributes = Converter::replaceToCyrillic($attribute_callback::get(), Converter::getTranslate('properties'));
 
             $CommerML = tap(new CommerceML, function ($instance) use ($attributes, $categories) {
                 $instance->setArray([
@@ -42,8 +41,7 @@ class GetCatalog
             $this->nextPageProgress($description . PHP_EOL . $CommerML->getXML());
         } else if (!$this->isFinish()) {
             // Step 1-10000:  Products
-            $products = Products::getPerPage($this->currentPage());
-            $products = Converter::replaceToCyrillic($products, Converter::getTranslate('product'));
+            $products = Converter::replaceToCyrillic($product_callback::get($this->currentPage()), Converter::getTranslate('product'));
             $CommerML = tap(new CommerceML, function ($instance) use ($products) {
                 $instance->setArray([Converter::getTranslate('products') => $products]);
             });
@@ -53,14 +51,18 @@ class GetCatalog
             $this->nextPageProgress($description . PHP_EOL . $CommerML->getXML());
         }
 
-        // Finish
-        $this->setPage(0);
-        Helpers::sendResponseByType('success', 'Uploaded ' . $this->getElementsCount() . ' of ' . $this->getElementsCount() . ' products from the site');
+        $this->finish();
     }
 
-    private function nextPageProgress(string $description)
+    protected function nextPageProgress(string $description)
     {
         $this->setNextPage();
-        Helpers::sendResponseByType('progress', $description);
+        commerceml_response_by_type('progress', $description);
+    }
+
+    protected function finish()
+    {
+        $this->setPage(0);
+        commerceml_response_by_type('success', 'Uploaded ' . $this->getElementsCount() . ' of ' . $this->getElementsCount() . ' products from the site');
     }
 }

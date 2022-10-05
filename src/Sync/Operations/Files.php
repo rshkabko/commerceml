@@ -69,6 +69,12 @@ class Files
         return $this;
     }
 
+    /**
+     * Upload file when its came from BODY like binary
+     *
+     * @param string $file
+     * @return void
+     */
     public function uploadBinary(string $file = '')
     {
         $file_data = file_get_contents("php://input");
@@ -79,9 +85,9 @@ class Files
                 $result = fwrite($fp, $file_data);
 
                 if ($result === $file_data_length)
-                    Helpers::sendResponseByType('success', 'File uploaded!');
+                    commerceml_response_by_type('success', 'File uploaded!');
                 else
-                    Helpers::sendResponseByType('success', 'Error when file upload, file has different space!');
+                    commerceml_response_by_type('success', 'Error when file upload, file has different space!');
             }
         }
     }

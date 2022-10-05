@@ -4,10 +4,10 @@ namespace Flamix\Sync\Operations;
 
 class Init
 {
-    public function clearDir(string $type)
+    public static function clearDir(string $type)
     {
         $dir = ($type === 'get_catalog') ? 'import' : 'sync';
         Files::exchange($dir)->clearDirectory();
-        Helpers::sendResponseByType('success', 'Removed directory: '. $dir);
+        commerceml_response_by_type('success', 'Removed directory: '. $dir);
     }
 }
