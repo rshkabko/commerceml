@@ -2,9 +2,11 @@
 
 class Init
 {
-    public static function init(): Init
+    public static function init(string $path): Init
     {
-        include_once 'helpers.php'
+        define('FLAMIX_EXCHANGE_DIR_PATH', $path);
+        include_once 'helpers.php';
+
         return $this;
     }
 }

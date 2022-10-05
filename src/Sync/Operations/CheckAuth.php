@@ -2,8 +2,6 @@
 
 namespace Flamix\Sync\Operations;
 
-use Flamix\Sync\Helpers;
-
 class CheckAuth
 {
     private object $receiver;

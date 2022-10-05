@@ -13,7 +13,7 @@ if (!function_exists('commerceml_log')) {
     {
         $date = date('Y-m-d');
         $log = new \Monolog\Logger('commerceml');
-        $log->pushHandler(new StreamHandler(DIR . '/../../../../logs/' . $date . '-info-' . md5($date) . '.log', \Monolog\Logger::DEBUG));
+        $log->pushHandler(new StreamHandler(FLAMIX_EXCHANGE_DIR_PATH . '/logs/' . $date . '-info-' . md5($date) . '.log', \Monolog\Logger::DEBUG));
         $log->info($message, $context);
         return $log;
     }
@@ -46,5 +46,17 @@ if (!function_exists('commerceml_response_by_type')) {
             commerceml_response([$type, $description]);
 
         commerceml_response(['failure', $description]);
+    }
+}
+
+if (!function_exists('commerceml_config')) {
+    function exchange_config(string $value, $default = null)
+    {
+        $value = explode('.', $value, 2);
+        $file = $value['0'] ?? '';
+        $key = $value['1'] ?? '';
+
+        $config = @include FLAMIX_EXCHANGE_DIR_PATH . '/config/' . $file . '.php';
+        return $config[$key] ?? (($default === null) ? $config : $default);
     }
 }

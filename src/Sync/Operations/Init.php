@@ -2,8 +2,6 @@
 
 namespace Flamix\Sync\Operations;
 
-use Flamix\Sync\Helpers;
-
 class Init
 {
     public function clearDir(string $type)

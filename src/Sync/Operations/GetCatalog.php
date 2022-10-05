@@ -2,7 +2,6 @@
 
 namespace Flamix\Sync\Operations;
 
-use Flamix\Sync\Helpers;
 use Flamix\Sync\Woo\Categories;
 use Flamix\Sync\Woo\Attributes;
 use Flamix\Sync\Woo\Products;
