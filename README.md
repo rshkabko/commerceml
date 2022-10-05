@@ -10,7 +10,8 @@ composer require flamix/commerceml
 
 ```php
 // Init
-composer require flamix/commerceml
+$flamixCommerceML = \Flamix\Sync\Init::init();
+$flamixCommerceML->setLogger();
 ```
 
 Documentations will be soon!
