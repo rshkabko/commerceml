@@ -16,7 +16,7 @@
     },
     "autoload":{
         "psr-4":{
-            "Flamix\\":"src"
+            "Flamix\\CommerceML\\":"src"
         }
     }
 }

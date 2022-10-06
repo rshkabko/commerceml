@@ -1,6 +1,6 @@
 <?php
 
-namespace Flamix\Sync\OneC;
+namespace Flamix\CommerceML\OneC;
 
 use SimpleXMLElement;
 

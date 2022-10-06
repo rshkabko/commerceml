@@ -1,10 +1,10 @@
 <?php
 
-namespace Flamix\Sync\Operations;
+namespace Flamix\CommerceML\Operations;
 
-use Flamix\Sync\OneC\Converter;
-use Flamix\Sync\OneC\CommerceML;
-use Flamix\Sync\Operations\Traits\SessionPaginator;
+use Flamix\CommerceML\OneC\Converter;
+use Flamix\CommerceML\OneC\CommerceML;
+use Flamix\CommerceML\Operations\Traits\SessionPaginator;
 
 class GetCatalog
 {

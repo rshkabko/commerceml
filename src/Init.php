@@ -1,10 +1,10 @@
 <?php
 namespace Flamix\Sync;
 
-use Flamix\Sync\Operations\CheckAuth;
-use Flamix\Sync\Operations\Init as OperationInit;
-use Flamix\Sync\Operations\GetCatalog;
-use Flamix\Sync\Operations\Files;
+use Flamix\CommerceML\Operations\CheckAuth;
+use Flamix\CommerceML\Operations\Init as OperationInit;
+use Flamix\CommerceML\Operations\GetCatalog;
+use Flamix\CommerceML\Operations\Files;
 
 class Init
 {
@@ -14,11 +14,9 @@ class Init
 
     public static function init(string $path): Init
     {
-        $class = new Init();
         define('FLAMIX_EXCHANGE_DIR_PATH', $path);
         include_once 'Helpers.php';
-
-        return $class;
+        return new Init();
     }
 
     public static function exchange()

@@ -1,6 +1,6 @@
 <?php
 
-namespace Flamix\Sync\OneC\Traits;
+namespace Flamix\CommerceML\OneC\Traits;
 
 trait Replacer
 {

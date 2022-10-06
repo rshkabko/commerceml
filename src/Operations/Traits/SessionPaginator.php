@@ -1,6 +1,6 @@
 <?php
 
-namespace Flamix\Sync\Operations\Traits;
+namespace Flamix\CommerceML\Operations\Traits;
 
 trait SessionPaginator
 {

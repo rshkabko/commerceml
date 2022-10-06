@@ -1,8 +1,8 @@
 <?php
 
-namespace Flamix\Sync\OneC;
+namespace Flamix\CommerceML\OneC;
 
-use Flamix\Sync\OneC\Traits\Replacer;
+use Flamix\CommerceML\OneC\Traits\Replacer;
 
 class Converter
 {

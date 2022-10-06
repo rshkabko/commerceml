@@ -1,5 +1,5 @@
 <?php
-namespace Flamix\Sync\Operations;
+namespace Flamix\CommerceML\Operations;
 
 class CheckAuth
 {
