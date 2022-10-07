@@ -32,7 +32,7 @@ trait SessionPaginator
     // Getters
     public function perPage(): int
     {
-        return exchange_config('exchange.items_per_page', 30);
+        return commerceml_config('exchange.items_per_page', 30);
     }
 
     public function getElementsCount(): int

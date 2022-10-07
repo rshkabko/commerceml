@@ -1,10 +1,18 @@
 <?php
 
 if (!function_exists('tap')) {
-    function tap($value, $callback)
+    function tap($value, callable $callback)
     {
         $callback($value);
         return $value;
+    }
+}
+
+if (!function_exists('dd')) {
+    function dd(...$var)
+    {
+        var_dump($var);
+        exit();
     }
 }
 
@@ -22,7 +30,7 @@ if (!function_exists('commerceml_log')) {
 if (!function_exists('commerceml_response')) {
     function commerceml_response(array|string $result)
     {
-        if(is_array($result))
+        if (is_array($result))
             echo implode(PHP_EOL, $result);
         else
             echo $result;
@@ -39,10 +47,10 @@ if (!function_exists('commerceml_response_by_type')) {
             'Content-Type' => 'Content-Type: text/plain; charset=utf-8',
         ];
 
-        foreach($headers as $header)
+        foreach ($headers as $header)
             header($header);
 
-        if(in_array($type, ['success', 'progress']))
+        if (in_array($type, ['success', 'progress']))
             commerceml_response([$type, $description]);
 
         commerceml_response(['failure', $description]);
@@ -50,13 +58,13 @@ if (!function_exists('commerceml_response_by_type')) {
 }
 
 if (!function_exists('commerceml_config')) {
-    function exchange_config(string $value, $default = null)
+    function commerceml_config(string $value, $default = null)
     {
         $value = explode('.', $value, 2);
         $file = $value['0'] ?? '';
         $key = $value['1'] ?? '';
 
-        $config = @include FLAMIX_EXCHANGE_DIR_PATH . '/config/' . $file . '.php';
+        $config = include FLAMIX_EXCHANGE_DIR_PATH . '/config/' . $file . '.php';
         return $config[$key] ?? (($default === null) ? $config : $default);
     }
 }

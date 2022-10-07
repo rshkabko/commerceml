@@ -6,6 +6,9 @@ class Files
 {
     private string $working_dir;
 
+    /**
+     * @param string $working_dir Pass when init plugin
+     */
     public function __construct(string $working_dir)
     {
         $this->working_dir = $working_dir;
@@ -15,7 +18,7 @@ class Files
      * Init exchange dir and you can work...
      * Files::exchange()->getPath()
      *
-     * @param string $dir
+     * @param string $dir Can set sub folder, ex: import, upload, etc
      * @return Files
      * @throws \Exception
      */
@@ -24,22 +27,39 @@ class Files
         if (!defined('FLAMIX_EXCHANGE_DIR_PATH'))
             throw new \Exception('Please, define plugin path by const FLAMIX_EXCHANGE_DIR_PATH!');
 
-        return tap(new Files(FLAMIX_EXCHANGE_DIR_PATH . '/files/exchange/' . $dir . '/'), function ($instance) {
+        return tap(new Files(FLAMIX_EXCHANGE_DIR_PATH . '/files/exchange/' . (!empty($dir) ? $dir . '/' : '')), function ($instance) {
             $instance->createDirectory();
         });
     }
 
+    /**
+     * Return path
+     *
+     * @param string $dir
+     * @return string
+     */
     public function getPath(string $dir = ''): string
     {
         return $this->working_dir . $dir;
     }
 
-    public function create(string $name, $content = ''): Files
+    /**
+     * @param string $name
+     * @param string $content
+     * @return $this
+     */
+    public function create(string $name, string $content = ''): Files
     {
         file_put_contents($this->getPath($name), $content);
         return $this;
     }
 
+    /**
+     * Create new directory
+     *
+     * @param string $dir Sub folder
+     * @return $this
+     */
     public function createDirectory(string $dir = ''): Files
     {
         @mkdir($this->getPath($dir), 0755, true);
@@ -80,7 +100,7 @@ class Files
         $file_data = file_get_contents("php://input");
         $file_data_length = strlen($file_data);
 
-        if(($file_data ?? false) !== false) {
+        if (($file_data ?? false) !== false) {
             if ($fp = fopen($this->getPath($file), "ab")) {
                 $result = fwrite($fp, $file_data);
 

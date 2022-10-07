@@ -1,5 +1,5 @@
 <?php
-namespace Flamix\Sync;
+namespace Flamix\CommerceML;
 
 use Flamix\CommerceML\Operations\CheckAuth;
 use Flamix\CommerceML\Operations\Init as OperationInit;

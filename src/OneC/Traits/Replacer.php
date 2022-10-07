@@ -63,7 +63,7 @@ trait Replacer
      */
     private static function needReplace(string $key): string|bool
     {
-        return exchange_config('translate.' . $key, false);
+        return commerceml_config('translate.' . $key, false);
     }
 
     /**

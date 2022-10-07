@@ -3,6 +3,12 @@ namespace Flamix\CommerceML\Operations;
 
 class CheckAuth
 {
+    /**
+     * Generate new session_id and print result
+     * New session_id will be automatically located in Cookies
+     *
+     * @return void
+     */
     public static function printPhpSession()
     {
         $session_id = self::getSessionId(true);
@@ -10,12 +16,18 @@ class CheckAuth
         commerceml_response([
             'success',
             'PHPSESSID',
-            md5($session_id),
-            'sessid=' . $session_id,
+            $session_id,
+            'sessid=' . md5($session_id),
             'timestamp=' . time(),
         ]);
     }
 
+    /**
+     * Return session_id
+     *
+     * @param $force Generate new session_id before returning
+     * @return false|string
+     */
     private static function getSessionId($force = false)
     {
         if (session_status() === PHP_SESSION_NONE)
@@ -27,14 +39,19 @@ class CheckAuth
         return session_id();
     }
 
+    /**
+     * PHPSESSID located in Cookies file
+     *
+     * @return bool
+     */
     public function checkByPhpSessionId(): bool
     {
-        $request_session_id = $_SERVER['HTTP_PHPSESSID'] ?? '';
-        if (empty($request_session_id))
-            commerceml_response_by_type('failure', 'Empty PHPSESSID in header!');
+        $cookie_session_id = $_COOKIE['PHPSESSID'] ?? '';
+        if (empty($cookie_session_id))
+            commerceml_response_by_type('failure', 'Empty PHPSESSID in Cookie!');
 
-        if ($request_session_id !== md5($this->getSessionId()))
-            commerceml_response_by_type('failure', 'Wrong PHPSESSID in header!');
+        if ($cookie_session_id !== $this->getSessionId())
+            commerceml_response_by_type('failure', 'Wrong PHPSESSID in Cookie!');
 
         return true;
     }

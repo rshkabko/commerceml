@@ -39,7 +39,7 @@ class CommerceML
 
     private function exportPrepareData(): string
     {
-        return '<?xml version="1.0" encoding="UTF-8"?><КоммерческаяИнформация xmlns="urn:1C.ru:commerceml_2" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ВерсияСхемы="' . $this->version . '" ДатаФормирования="' . date('Y-m-dTh:i:s') . '"></КоммерческаяИнформация>';
+        return str_replace([':version', ':date'], [$this->version, date('Y-m-dTh:i:s')], commerceml_config('translate.starter', ''));
     }
 
     public static function array_to_xml($data, SimpleXMLElement &$xml_data): void
