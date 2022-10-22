@@ -54,6 +54,12 @@ class Files
         return $this;
     }
 
+    public function content(string $file = ''): string
+    {
+        // TODO: Check if file exist
+        return file_get_contents($this->getPath($file));
+    }
+
     /**
      * Create new directory
      *
@@ -89,6 +95,12 @@ class Files
         return $this;
     }
 
+    public function deleteFile(string $filename = ''): Files
+    {
+        @unlink($this->getPath($filename));
+        return $this;
+    }
+
     /**
      * Upload file when its came from BODY like binary
      *
@@ -110,5 +122,28 @@ class Files
                     commerceml_response_by_type('success', 'Error when file upload, file has different space!');
             }
         }
+    }
+
+    public function exist(string $file_pattern): bool
+    {
+        $files = scandir($this->working_dir);
+        foreach ($files as $file)
+            if (str_contains($file, $file_pattern))
+                return true;
+
+        return false;
+    }
+
+    public function extract(string $filename): Files
+    {
+        $zip = new \ZipArchive;
+        $res = $zip->open($this->getPath($filename));
+        if ($res !== true)
+            throw new \Exception('Error when extract zip!');
+
+        $zip->extractTo($this->getPath());
+        $zip->close();
+
+        return $this;
     }
 }

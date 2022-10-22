@@ -1,7 +1,9 @@
 <?php
+
 namespace Flamix\CommerceML;
 
 use Flamix\CommerceML\Operations\CheckAuth;
+use Flamix\CommerceML\Operations\Import;
 use Flamix\CommerceML\Operations\Init as OperationInit;
 use Flamix\CommerceML\Operations\GetCatalog;
 use Flamix\CommerceML\Operations\Files;
@@ -80,10 +82,10 @@ class Init
         throw new \Exception('Please, make your own password checking by extends actionCheck() method!');
 
         // Example
-        if('my_login_from_CMS' !== ($_SERVER['PHP_AUTH_USER'] ?? ''))
+        if ('my_login_from_CMS' !== ($_SERVER['PHP_AUTH_USER'] ?? ''))
             throw new \Exception('Bad login!');
 
-        if('my_password_from_CMS' !== ($_SERVER['PHP_AUTH_PW'] ?? ''))
+        if ('my_password_from_CMS' !== ($_SERVER['PHP_AUTH_PW'] ?? ''))
             throw new \Exception('Bad password!');
 
         // If OK - Print our session_id
@@ -125,13 +127,23 @@ class Init
         Files::exchange('upload')->create($_REQUEST['filename'] ?? '')->uploadBinary($_REQUEST['filename'] ?? '');
     }
 
-    /**
-     * Import
-     *
-     * @return void
-     */
     public static function actionImport()
     {
-        // TODO: Make this actions
+        $importController = new Import;
+        $filename_request = $_REQUEST['filename'] ?? '';
+        $filename = explode('.', $filename_request)['0'] ?? false;
+        $is_zip = str_contains($filename_request, '.zip');
+        $is_part = Files::exchange('upload')->exist('_'); // Do we use _0, _1 partial?
+        $is_unzipped = $importController->checkIsUnzipped($filename_request);
+
+        if ($is_unzipped) {
+            $importController->import('prices.xml', [static::class, 'restsHandler'], [static::class, 'pricesHandler'], [static::class, 'productsHandler']);
+        } else if ($is_zip) {
+            $is_unzipped = !$importController->unzipAndDelete($filename_request);
+        }
+
+        dd($is_zip, $is_unzipped, $filename);
+
+        dd('Please, write own handler to file: ' . $filename);
     }
 }

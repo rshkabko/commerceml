@@ -14,8 +14,11 @@ class CommerceML
         return $this;
     }
 
-    public function getData(): SimpleXMLElement
+    public function getData(bool $as_array = false)
     {
+        if ($as_array)
+            return json_decode(json_encode($this->data), true);
+
         return $this->data;
     }
 
@@ -27,6 +30,12 @@ class CommerceML
     public function saveToFile(string $file): CommerceML
     {
         $this->data->asXML($file);
+        return $this;
+    }
+
+    public function setFromString(string $file_content): CommerceML
+    {
+        $this->data = new SimpleXMLElement($file_content);
         return $this;
     }
 

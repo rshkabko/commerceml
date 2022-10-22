@@ -28,7 +28,7 @@ if (!function_exists('commerceml_log')) {
 }
 
 if (!function_exists('commerceml_response')) {
-    function commerceml_response(array|string $result)
+    function commerceml_response($result)
     {
         if (is_array($result))
             echo implode(PHP_EOL, $result);

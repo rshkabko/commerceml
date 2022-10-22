@@ -61,7 +61,7 @@ trait Replacer
      * @param string $key
      * @return string|bool
      */
-    private static function needReplace(string $key): string|bool
+    private static function needReplace(string $key)
     {
         return commerceml_config('translate.' . $key, false);
     }

@@ -13,4 +13,8 @@ composer require flamix/commerceml
 \Flamix\Sync\Init::init('/path/to/working/directory/');
 ```
 
+## Export products from site to CRM
+
+![Screenshot](img/getcatalog.svg)
+
 Documentations will be soon!
