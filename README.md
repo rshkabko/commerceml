@@ -96,7 +96,7 @@ class Exchange extends Init {
         if (!$woo_id)
             return false;
 
-        $general_quantity = array_sum(array_column($rests, 'Количество'));
+        $general_quantity = array_sum(array_column($rests, 'quantity'));
         commerceml_log('[restsHandler] General quantity by all warehouses ' . $general_quantity);
 
         if (!$general_quantity)
@@ -122,5 +122,5 @@ if (($_GET['flamix_product'] ?? false) === 'Y')
 
 ### Export: Products, category and fields from site to CRM
 
-![Screenshot](img/getcatalog.svg)
+![Screenshot](img/export.svg)
 
