@@ -1,7 +1,7 @@
 {
-    "name": "flamix/commerceml",
-    "description": "Flamix package to use CommerceML",
-    "homepage": "https://flamix.solutions/bitrix24/integrations/site/products/",
+    "name": "flamix/b24-lead",
+    "description": "B24 Lead SDK",
+    "homepage": "https://lead.app.flamix.solutions",
     "authors": [
         {
             "name": "Roman Shkabko",
@@ -10,13 +10,16 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
+        "php": ">=7.0",
         "ext-json": "*",
-        "monolog/monolog": "^2.0"
+        "xsuchy09/utm-cookie": "2.0.2",
+        "flamix/conversions": "v0.2",
+        "guzzlehttp/guzzle": ">=6",
+        "mobiledetect/mobiledetectlib": "^2.8"
     },
     "autoload":{
         "psr-4":{
-            "Flamix\\CommerceML\\":"src"
+            "Flamix\\":"src"
         }
     }
 }
