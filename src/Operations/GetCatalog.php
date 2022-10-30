@@ -33,7 +33,7 @@ class GetCatalog
 
             // Save to file and translate
             $CommerceML->saveToFile($exportFile);
-            $CommerceML->translate($exportFile, 'ru');
+            $CommerceML->translateFile($exportFile, 'ru');
 
             $this->nextPageProgress($description . PHP_EOL . $CommerceML->getXML());
         } else if (!$this->isFinish()) {
@@ -43,7 +43,7 @@ class GetCatalog
             // dd($CommerceML->getData(true)); // Debug
 
             $CommerceML->saveToFile($exportFile);
-            $CommerceML->translate($exportFile, 'ru');
+            $CommerceML->translateFile($exportFile, 'ru');
             $this->nextPageProgress($description . PHP_EOL . $CommerceML->getXML());
         }
 
