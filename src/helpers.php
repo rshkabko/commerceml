@@ -38,7 +38,7 @@ if (!function_exists('commerceml_response')) {
 if (!function_exists('commerceml_response_by_type')) {
     function commerceml_response_by_type(string $type = 'failure', string $description = '')
     {
-        commerceml_log('In 1C was send a response of the type:' . $type);
+        commerceml_log('In 1C was send a response of the type: ' . $type);
 
         foreach (commerceml_config('response_header', ['Content-Type' => 'Content-Type: text/plain; charset=utf-8']) as $header)
             header($header);

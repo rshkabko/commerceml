@@ -23,28 +23,24 @@ class GetCatalog
     {
         $this->setElementsCount(call_user_func([$product_callback, 'productCount']));
         $description = 'Uploaded ' . $this->currentElement() . ' of ' . $this->getElementsCount() . ' products from the site';
-        $exportFile = Files::exchange(commerceml_config('dir_export', 'export'))->getPath('import_' . $this->currentPage() . '.xml');
+        commerceml_log($description, [
+            'current_page' => $this->currentPage(),
+            'max_page' => $this->calculatePage(),
+            'next_page' => $this->getNextPage()
+        ]);
 
         if ($this->isStart()) {
             // Step 0: Property && Categories as array with special structure
             $CommerceML = $this->step_zero($category_callback, $attribute_callback);
 
             // dd($CommerceML->getData(true)); // Debug
-
-            // Save to file and translate
-            $CommerceML->saveToFile($exportFile);
-            $CommerceML->translateFile($exportFile, 'ru');
-
-            $this->nextPageProgress($description . PHP_EOL . $CommerceML->getXML());
+            $this->savePreparedAndSwitchPage($CommerceML, $description);
         } else if (!$this->isFinish()) {
             // Step 1+: Products
             $CommerceML = $this->step_products($product_callback);
 
             // dd($CommerceML->getData(true)); // Debug
-
-            $CommerceML->saveToFile($exportFile);
-            $CommerceML->translateFile($exportFile, 'ru');
-            $this->nextPageProgress($description . PHP_EOL . $CommerceML->getXML());
+            $this->savePreparedAndSwitchPage($CommerceML, $description);
         }
 
         $this->finish();
@@ -56,6 +52,7 @@ class GetCatalog
      * @param string $category_callback
      * @param string $attribute_callback
      * @return CommerceML
+     * @throws \Exception
      */
     protected function step_zero(string $category_callback, string $attribute_callback): CommerceML
     {
@@ -79,6 +76,7 @@ class GetCatalog
      *
      * @param string $product_callback
      * @return CommerceML
+     * @throws \Exception
      */
     protected function step_products(string $product_callback): CommerceML
     {
@@ -116,5 +114,25 @@ class GetCatalog
     {
         $this->setPage(0);
         commerceml_response_by_type('success', 'Uploaded ' . $this->getElementsCount() . ' of ' . $this->getElementsCount() . ' products from the site');
+    }
+
+    /**
+     * Make all needed with XML Data.
+     *
+     * 1. clearEmptyTags, ex remove empty <catalog/>, etc.
+     * 2. Translate for compatibility.
+     * 3. Save to file for debug.
+     *
+     * @param CommerceML $CommerceML
+     * @param $description
+     * @return void
+     * @throws \Exception
+     */
+    protected function savePreparedAndSwitchPage(CommerceML $CommerceML, $description)
+    {
+        $exportFile = Files::exchange(commerceml_config('dir_export', 'export'))->getPath('import_' . $this->currentPage() . '.xml');
+        $xml_content = $CommerceML->translate($CommerceML->clearEmptyTags($CommerceML->getXML()), 'ru');
+        file_put_contents($exportFile, $xml_content); // Save to file for debug, because our plugin take info from output
+        $this->nextPageProgress($description . PHP_EOL . $xml_content);
     }
 }

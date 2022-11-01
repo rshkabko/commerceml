@@ -15,6 +15,9 @@ class Converter
     public static function prepareToCommerceMLStructure(array $entities, string $code = '', ?string $closure_key = null): array
     {
         foreach ($entities as &$entity) {
+            // Clear empty elements
+            $entity = array_filter($entity, fn($value) => !is_null($value) && $value !== '');
+
             // Run closure if key exist
             if ($closure_key && !empty($entity[$closure_key]))
                 $entity[$closure_key] = self::prepareToCommerceMLStructure($entity[$closure_key], $code, $closure_key);
@@ -23,12 +26,12 @@ class Converter
             if (!empty($code))
                 $entity['code'] = $code;
 
-            if(!is_array($entity))
+            if (!is_array($entity))
                 continue;
 
             // Working with all keys
             foreach ($entity as $field_key => $field_value) {
-                if (self::isHaveSpecialMethod($field_key)) {
+                if (self::isHaveSpecialMethod($field_key) && !empty($field_value)) {
                     $name = self::getSpecialMethodName($field_key);
                     $entity[$field_key] = call_user_func([self::class, $name], $field_value);
                     unset($entity[$field_key]);

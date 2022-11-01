@@ -51,9 +51,17 @@ trait SessionPaginator
         return (int)($_SESSION['flamix_page'] ?? 0);
     }
 
+    /**
+     * Current point.
+     *
+     * Max = All elements count.
+     *
+     * @return int
+     */
     public function currentElement(): int
     {
-        return $this->getElementsCount() * $this->currentPage();
+        $current_max = $this->perPage() * $this->currentPage();
+        return ($current_max > $this->getElementsCount()) ? $this->getElementsCount() : $current_max;
     }
 
     public function getNextPage(): int
@@ -68,7 +76,6 @@ trait SessionPaginator
     }
 
     // Checkers
-
     public function isFinish(): bool
     {
         return $this->currentPage() > $this->calculatePage();

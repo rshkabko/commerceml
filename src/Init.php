@@ -15,6 +15,18 @@ class Init implements HasAllImportHandlers
     protected static string $category_callback;
     protected static string $attribute_callback;
 
+    /**
+     * Starting exchange
+     *
+     * We use separate method because in this case we can extend Init and change start (ex, add some CMS staff)
+     *
+     * @return void
+     */
+    public static function start()
+    {
+        static::exchange();
+    }
+
     public static function init(string $path): Init
     {
         define('FLAMIX_EXCHANGE_DIR_PATH', $path);

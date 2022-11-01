@@ -8,15 +8,34 @@ class CommerceML
 {
     private string $version = 'FlamixSimplyCommerceML';
     private SimpleXMLElement $data;
+    private string $lang;
+
+    public function __construct(string $lang = 'en')
+    {
+        $this->lang = $lang;
+    }
 
     /**
      * Simply init like static.
      *
+     * @param string $lang
      * @return CommerceML
      */
-    public static function init(): CommerceML
+    public static function init(string $lang = 'en'): CommerceML
     {
-        return new CommerceML;
+        return new CommerceML($lang);
+    }
+
+    /**
+     * Change lang.
+     *
+     * @param string $lang
+     * @return $this
+     */
+    public function setLang(string $lang): CommerceML
+    {
+        $this->lang = $lang;
+        return $this;
     }
 
     /**
@@ -34,7 +53,7 @@ class CommerceML
     }
 
     /**
-     * Get XML Data like a XML
+     * Get XML Data like a XML.
      *
      * @return string
      */
@@ -44,7 +63,7 @@ class CommerceML
     }
 
     /**
-     * Save XML data to file like a XML
+     * Save XML data to file like a XML.
      *
      * @param string $file
      * @return $this
@@ -80,7 +99,7 @@ class CommerceML
      */
     public function setArray(array $data, ?string $starting_data = null): CommerceML
     {
-        $this->data = new SimpleXMLElement($starting_data ?: $this->exportPrepareData());
+        $this->data = new SimpleXMLElement($this->translate($starting_data ?: $this->exportPrepareData(), $this->lang));
         $this->array_to_xml($data, $this->data);
         return $this;
     }
@@ -100,10 +119,19 @@ class CommerceML
                 ></CommercialInformation>';
     }
 
+    /**
+     * Convert array to xml.
+     *
+     * Main classes :)
+     *
+     * @param array $data
+     * @param SimpleXMLElement $xml_data
+     * @return SimpleXMLElement
+     */
     public static function array_to_xml(array $data, SimpleXMLElement &$xml_data): SimpleXMLElement
     {
         foreach ($data as $key => $value) {
-            //Потому что есть одинаковые ключи "Склад" и тд
+            // Because XML can have same KEYs, ex: price, etc.
             if (isset($value['code'])) {
                 $key = $value['code'];
                 unset($value['code']);
@@ -116,11 +144,10 @@ class CommerceML
                 $value[$key] = $value['value'];
                 unset($value['value']);
 
-                $subnode = $xml_data->addChild($key);
-                self::array_to_xml($value, $subnode);
-
-                // А еще можно передать массив (если нужно code), но value в значение подставить
+                $subNode = $xml_data->addChild($key);
+                self::array_to_xml($value, $subNode);
             } else if (isset($value['value'])) {
+                // If we pass "code", and want use custom value (if our value array or bad)
                 $xml_data->addChild("$key", mb_convert_encoding(htmlspecialchars($value['value']), 'utf-8', mb_detect_encoding($value['value'])));
             } else {
                 $xml_data->addChild("$key", mb_convert_encoding(htmlspecialchars($value), 'utf-8', mb_detect_encoding($value)));
@@ -133,7 +160,7 @@ class CommerceML
     /**
      * Translate content.
      *
-     * Native CommerceML use Russian language>
+     * Native CommerceML use Russian language :(
      * In our plugin we try to don't use this lang, but in some case we need for compatibility
      *
      * @param string $content Content to translate
@@ -175,5 +202,18 @@ class CommerceML
         $content = $this->translate($content, $lang_to);
         @file_put_contents($filepath, $content);
         return $content;
+    }
+
+    /**
+     * Delete empty tags.
+     *
+     * ONLY ENGLISH
+     *
+     * @param string $content
+     * @return string
+     */
+    public function clearEmptyTags(string $content): string
+    {
+        return preg_replace("/<[a-zA-Z]+\/>/", "", $content);
     }
 }
