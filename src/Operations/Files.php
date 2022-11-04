@@ -26,10 +26,10 @@ class Files
      */
     public static function exchange(string $dir = ''): Files
     {
-        if (!defined('FLAMIX_EXCHANGE_DIR_PATH'))
-            throw new \Exception('Please, define plugin path by const FLAMIX_EXCHANGE_DIR_PATH!');
+        if (!defined('FLAMIX_LOGS_PATH'))
+            throw new \Exception('Please, define FLAMIX_LOGS_PATH by correct Init Flamix Plugin!');
 
-        return tap(new Files(FLAMIX_EXCHANGE_DIR_PATH . '/files/exchange/' . (!empty($dir) ? $dir . '/' : '')), function ($instance) {
+        return tap(new Files(FLAMIX_LOGS_PATH . '/commerceml/' . (!empty($dir) ? $dir . '/' : '')), function ($instance) {
             $instance->createDirectory();
         });
     }
