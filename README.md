@@ -33,7 +33,7 @@ Can be imported and used as a Postman collection or OpenAPI Spec.
 
 ## Install and usage
 
-```php
+```bash
 composer require flamix/commerceml
 ```
 

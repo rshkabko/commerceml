@@ -10,9 +10,9 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
+        "php": ">=7.4",
         "ext-json": "*",
-        "monolog/monolog": "^2.0"
+        "flamix/plugin-helpers": "dev-main"
     },
     "autoload":{
         "psr-4":{
