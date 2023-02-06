@@ -141,6 +141,9 @@ class CommerceML
                 if (is_numeric($key))
                     $key = 'item_' . $key;
 
+                $value[$key] = $value['value'];
+                unset($value['value']);
+
                 $subNode = $xml_data->addChild($key);
                 self::array_to_xml($value, $subNode);
             } else if (isset($value['value'])) {

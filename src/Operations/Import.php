@@ -7,11 +7,19 @@ use Flamix\CommerceML\OneC\Converter;
 
 class Import
 {
-    private string $dir = 'import';
-
     public function __construct()
     {
-        commerceml_log('Import init with dir: ' . $this->dir);
+        commerceml_log('Import init with dir: ' . $this->dir());
+    }
+
+    /**
+     * Get import dir.
+     *
+     * @return string
+     */
+    public function dir(): string
+    {
+        return commerceml_config('dir_import', 'import');
     }
 
     /**
@@ -24,7 +32,7 @@ class Import
     public function unzipAndDelete(string $filename): bool
     {
         commerceml_log('Start extracting file ' . $filename . ' and delete it!');
-        return Files::exchange($this->dir)->extract($filename)->deleteFile($filename)->exist($filename);
+        return Files::exchange($this->dir())->extract($filename)->deleteFile($filename)->exist($filename);
     }
 
     /**
@@ -36,7 +44,7 @@ class Import
      */
     public function unzipAndDeleteAllFilesInFolderBySteps(): void
     {
-        $zip_files = Files::exchange($this->dir)->find('.zip');
+        $zip_files = Files::exchange($this->dir())->find('.zip');
         $is_unzipped = count($zip_files) === 0;
 
         if (!$is_unzipped) {
@@ -56,9 +64,10 @@ class Import
      */
     public function parseEntities(string $filename): array
     {
-        $content = Files::exchange($this->dir)->content($filename);
-        $products = (new CommerceML)->setFromString($content)->getData(true)[Converter::getTranslate('offersPackage')][Converter::getTranslate('offers')][Converter::getTranslate('offer')] ?? [];
-        if (count($products) === 1 || isset($products['Ид'])) // TODO: translate
+        $content = Files::exchange($this->dir())->content($filename);
+        $products = (new CommerceML)->setFromString($content)->getData(true)['offersPackage']['offers']['offer'] ?? [];
+
+        if (count($products) === 1 || isset($products['id']))
             $products = [$products];
 
         commerceml_log('Get products from file ' . $filename, $products);
@@ -83,7 +92,7 @@ class Import
             throw new \Exception('Empty offers in file: ' . $filename);
 
         foreach ($entities as $entity) {
-            $product_id = $entity['Ид'];
+            $product_id = $entity['id'];
 
             /***** | Run handles | ****/
             // Rests
@@ -116,15 +125,16 @@ class Import
      */
     public function importAllFilesInFolderBySteps($rests_fn, $prices_fn, $products_fn): void
     {
-        $folder = Files::exchange($this->dir);
+        $folder = Files::exchange($this->dir());
         $xml_files = $folder->find('.xml');
+
         if (!count($xml_files))
             commerceml_response_by_type('success', 'All files was imported!');
 
         foreach ($xml_files as $xml_file) {
-            // Calling our imports handlers...
-            $this->import($xml_file, $rests_fn, $prices_fn, $products_fn);
-            $folder->deleteFile($xml_file);
+            (new CommerceML)->translateFile($folder->getPath($xml_file), 'en'); // Translate (file from app on Russian lang)
+            $this->import($xml_file, $rests_fn, $prices_fn, $products_fn); // Calling our imports handlers
+            $folder->deleteFile($xml_file); // Delete
             commerceml_response_by_type('progress', 'Import and delete file ' . $xml_file);
         }
     }

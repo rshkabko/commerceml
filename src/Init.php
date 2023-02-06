@@ -137,7 +137,7 @@ class Init implements HasAllImportHandlers
      */
     public static function actionFile()
     {
-        Files::exchange('upload')->create($_REQUEST['filename'] ?? '')->uploadBinary($_REQUEST['filename'] ?? '');
+        Files::exchange(commerceml_config('dir_import', 'import'))->create($_REQUEST['filename'] ?? '')->uploadBinary($_REQUEST['filename'] ?? '');
     }
 
     /**
