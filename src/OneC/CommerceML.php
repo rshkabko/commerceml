@@ -170,20 +170,22 @@ class CommerceML
         if ($lang_to !== 'en')
             $translate_words = array_flip($translate_words);
 
-        foreach ($translate_words as $translate_word_from => $translate_word_to) {
-            unset($translate_words[$translate_word_from]);
-
-            // If we use @ - Just ignore adding ">" tags
+        $plain = $tags = [];
+        foreach ($translate_words as $translate_word_to => $translate_word_from) {
+            // If we use @ - replace anywhere: root tag and its attributes
             if (str_contains($translate_word_from, '@') || str_contains($translate_word_to, '@')) {
-                $translate_words[str_replace('@', '', $translate_word_from)] = str_replace('@', '', $translate_word_to);
+                $plain[str_replace('@', '', $translate_word_from)] = str_replace('@', '', $translate_word_to);
                 continue;
             }
 
-            $translate_words[$translate_word_from . '>'] = $translate_word_to . '>';
-            $translate_words[$translate_word_from . '/>'] = $translate_word_to . '/>'; // For empty tags, ex <id/>
+            $tags[$translate_word_from] = $translate_word_to;
         }
 
-        return str_replace($translate_words, array_keys($translate_words), $content);
+        $content = str_replace(array_keys($plain), $plain, $content);
+
+        // Whole tag names only: "Свойства>" must not rewrite the end of "ЗначенияСвойства>", tags with attributes count too.
+        $pattern = '/<(\/?)(' . implode('|', array_map(fn($tag) => preg_quote($tag, '/'), array_keys($tags))) . ')(?=[\s\/>])/u';
+        return preg_replace_callback($pattern, fn($match) => '<' . $match[1] . $tags[$match[2]], $content);
     }
 
     /**
