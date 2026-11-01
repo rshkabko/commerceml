@@ -9,24 +9,20 @@ use Flamix\CommerceML\Operations\GetCatalog;
 use Flamix\CommerceML\Operations\Files;
 use Flamix\CommerceML\Contracts\HasAllImportHandlers;
 
+/** The exchange endpoint: extend it, set the three callbacks, override actionCheck() and the import handlers. */
 class Init implements HasAllImportHandlers
 {
     protected static string $product_callback;
     protected static string $category_callback;
     protected static string $attribute_callback;
 
-    /**
-     * Starting exchange
-     *
-     * We use separate method because in this case we can extend Init and change start (ex, add some CMS staff)
-     *
-     * @return void
-     */
+    /** Entry point for the exchange URL; a subclass overrides it to boot CMS stuff before exchange(). */
     public static function start()
     {
         static::exchange();
     }
 
+    /** Defines FLAMIX_EXCHANGE_DIR_PATH (the folder with config.php) and loads the commerceml_* helpers. */
     public static function init(string $path): Init
     {
         define('FLAMIX_EXCHANGE_DIR_PATH', $path);
@@ -34,6 +30,7 @@ class Init implements HasAllImportHandlers
         return new Init();
     }
 
+    /** Routes ?type=&mode= to an action; every branch ends the request through commerceml_response(). */
     public static function exchange()
     {
         $type = ($_GET['type'] ?? false) ?: '';
@@ -85,43 +82,31 @@ class Init implements HasAllImportHandlers
     }
 
     /**
-     * Checking login and password and return PHP_SESSIONID
+     * Checks the Basic auth login and password and prints the session id; must be overridden.
      *
-     * @return mixed
      * @throws \Exception
      */
     public static function actionCheck()
     {
         throw new \Exception('Please, make your own password checking by extends actionCheck() method!');
 
-        // Example
+        // Unreachable on purpose: the shape a subclass's override takes.
         if ('my_login_from_CMS' !== ($_SERVER['PHP_AUTH_USER'] ?? ''))
             throw new \Exception('Bad login!');
 
         if ('my_password_from_CMS' !== ($_SERVER['PHP_AUTH_PW'] ?? ''))
             throw new \Exception('Bad password!');
 
-        // If OK - Print our session_id
         return CheckAuth::printPhpSession();
     }
 
-    /**
-     * Delete old export files
-     *
-     * @param string $type
-     * @return void
-     */
+    /** Deletes the export (get_catalog) or import (catalog) folder and resets the export page. */
     public static function actionInit(string $type)
     {
         OperationInit::clearDir($type);
     }
 
-    /**
-     * Export catalog
-     *
-     * @param string $type
-     * @return void
-     */
+    /** Prints the next export step: the classifier first, then one products page per request. */
     public static function actionQuery(string $type)
     {
         tap(new GetCatalog(), function ($instance) {
@@ -130,21 +115,21 @@ class Init implements HasAllImportHandlers
     }
 
     /**
-     * Upload file
+     * Writes the request body to ?filename= (an .xml or .zip name) in the import folder.
      *
-     * @return void
      * @throws \Exception
      */
     public static function actionFile()
     {
-        Files::exchange(commerceml_config('dir_import', 'import'))->create($_REQUEST['filename'] ?? '')->uploadBinary($_REQUEST['filename'] ?? '');
+        // basename + extension check: the name comes from the request and lands in a folder under the web root.
+        $name = basename((string) ($_REQUEST['filename'] ?? ''));
+        if (!preg_match('/^[\w.-]+\.(xml|zip)$/i', $name))
+            commerceml_response_by_type('failure', 'Only .xml and .zip files are accepted!');
+
+        Files::exchange(commerceml_config('dir_import', 'import'))->create($name)->uploadBinary($name);
     }
 
-    /**
-     * Import rests, prices and products with standards attributes
-     *
-     * @return void
-     */
+    /** Unzips one archive or imports one XML file per request, calling the handlers per offer. */
     public static function actionImport()
     {
         tap(new Import, function ($importController) {
@@ -152,8 +137,6 @@ class Init implements HasAllImportHandlers
             $importController->importAllFilesInFolderBySteps([static::class, 'restsHandler'], [static::class, 'pricesHandler'], [static::class, 'productsHandler']);
         });
     }
-
-    /****************** | HANDLERS - CHANGE! | *******************/
 
     public static function restsHandler($product_id, array $rests): bool
     {

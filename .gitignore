@@ -3,3 +3,7 @@ error_log
 yarn-error.log
 /.idea
 /.vscode
+/vendor
+composer.lock
+.phpunit.result.cache
+.phpunit.cache

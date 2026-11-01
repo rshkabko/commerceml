@@ -1,17 +1,14 @@
 <?php
 namespace Flamix\CommerceML\Operations;
 
+/** The checkauth handshake: issues the PHP session id and checks it on every later mode. */
 class CheckAuth
 {
-    /**
-     * Generate new session_id and print result
-     * New session_id will be automatically located in Cookies
-     *
-     * @return void
-     */
+    /** Regenerates the session and prints success, PHPSESSID, the id, sessid and timestamp. */
     public static function printPhpSession()
     {
         $session_id = self::getSessionId(true);
+        $_SESSION['commerceml_auth'] = true;
 
         commerceml_response([
             'success',
@@ -22,28 +19,19 @@ class CheckAuth
         ]);
     }
 
-    /**
-     * Return session_id
-     *
-     * @param $force Generate new session_id before returning
-     * @return false|string
-     */
+    /** @return false|string */
     private static function getSessionId($force = false)
     {
         if (session_status() === PHP_SESSION_NONE)
             session_start();
 
         if ($force)
-            session_regenerate_id();
+            session_regenerate_id(true);
 
         return session_id();
     }
 
-    /**
-     * PHPSESSID located in Cookies file
-     *
-     * @return bool
-     */
+    /** Ends the request with failure unless the PHPSESSID cookie is a session that passed checkauth. */
     public function checkByPhpSessionId(): bool
     {
         $cookie_session_id = $_COOKIE['PHPSESSID'] ?? '';
@@ -52,6 +40,10 @@ class CheckAuth
 
         if ($cookie_session_id !== $this->getSessionId())
             commerceml_response_by_type('failure', 'Wrong PHPSESSID in Cookie!');
+
+        // session_start() adopts any cookie as the id, so the cookie match alone proves nothing.
+        if (empty($_SESSION['commerceml_auth']))
+            commerceml_response_by_type('failure', 'Session did not pass checkauth!');
 
         return true;
     }

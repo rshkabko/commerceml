@@ -2,6 +2,7 @@
 
 namespace Flamix\CommerceML\Operations\Traits;
 
+/** Export paging kept in $_SESSION['flamix_page'], so it survives between exchange requests. */
 trait SessionPaginator
 {
     private int $elementsCount = 0;
@@ -12,7 +13,7 @@ trait SessionPaginator
             session_start();
     }
 
-    // Setters
+    /** @throws \Exception on 0: an empty shop fails the export instead of succeeding with nothing. */
     public function setElementsCount(int $elementsCount): object
     {
         if ($elementsCount === 0)
@@ -29,7 +30,6 @@ trait SessionPaginator
         return $this->currentPage();
     }
 
-    // Getters
     public function perPage(): int
     {
         return commerceml_config('items_per_page', 30);
@@ -51,13 +51,7 @@ trait SessionPaginator
         return (int)($_SESSION['flamix_page'] ?? 0);
     }
 
-    /**
-     * Current point.
-     *
-     * Max = All elements count.
-     *
-     * @return int
-     */
+    /** Elements exported before the current page, capped at the total. */
     public function currentElement(): int
     {
         $current_max = $this->perPage() * $this->currentPage();
@@ -75,7 +69,6 @@ trait SessionPaginator
         return $this->setPage($this->getNextPage());
     }
 
-    // Checkers
     public function isFinish(): bool
     {
         return $this->currentPage() > $this->calculatePage();

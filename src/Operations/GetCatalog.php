@@ -6,17 +6,14 @@ use Flamix\CommerceML\OneC\Converter;
 use Flamix\CommerceML\OneC\CommerceML;
 use Flamix\CommerceML\Operations\Traits\SessionPaginator;
 
+/** The get_catalog export: page 0 is the classifier, pages 1..N are products, the session holds the page. */
 class GetCatalog
 {
     use SessionPaginator;
 
     /**
-     * Main query functional
+     * Prints the current step as progress, or success and a reset to page 0 after the last one.
      *
-     * @param string $product_callback
-     * @param string $category_callback
-     * @param string $attribute_callback
-     * @return void
      * @throws \Exception
      */
     public function query(string $product_callback, string $category_callback, string $attribute_callback)
@@ -30,16 +27,10 @@ class GetCatalog
         ]);
 
         if ($this->isStart()) {
-            // Step 0: Property && Categories as array with special structure
             $CommerceML = $this->step_zero($category_callback, $attribute_callback);
-
-            // dd($CommerceML->getData(true)); // Debug
             $this->savePreparedAndSwitchPage($CommerceML, $description);
         } else if (!$this->isFinish()) {
-            // Step 1+: Products
             $CommerceML = $this->step_products($product_callback);
-
-            // dd($CommerceML->getData(true)); // Debug
             $this->savePreparedAndSwitchPage($CommerceML, $description);
         }
 
@@ -47,11 +38,8 @@ class GetCatalog
     }
 
     /**
-     * Generating all categories and property (attributes)
+     * The classifier: categories and properties.
      *
-     * @param string $category_callback
-     * @param string $attribute_callback
-     * @return CommerceML
      * @throws \Exception
      */
     protected function step_zero(string $category_callback, string $attribute_callback): CommerceML
@@ -70,12 +58,8 @@ class GetCatalog
     }
 
     /**
-     * Generate products with basic property
+     * One page of products, items_per_page long.
      *
-     * Using steps 30
-     *
-     * @param string $product_callback
-     * @return CommerceML
      * @throws \Exception
      */
     protected function step_products(string $product_callback): CommerceML
@@ -91,25 +75,12 @@ class GetCatalog
         ]);
     }
 
-    /**
-     * Set +1 to current page
-     * Print PROGRESS status
-     *
-     * @param string $description
-     * @return void
-     */
     protected function nextPageProgress(string $description)
     {
         $this->setNextPage();
         commerceml_response_by_type('progress', $description);
     }
 
-    /**
-     * Set ZERO page to session
-     * Print SUCCESS
-     *
-     * @return void
-     */
     protected function finish()
     {
         $this->setPage(0);
@@ -117,22 +88,16 @@ class GetCatalog
     }
 
     /**
-     * Make all needed with XML Data.
+     * Drops empty tags, translates to Russian, saves export/import_<page>.xml and prints it as progress.
      *
-     * 1. clearEmptyTags, ex remove empty <catalog/>, etc.
-     * 2. Translate for compatibility.
-     * 3. Save to file for debug.
-     *
-     * @param CommerceML $CommerceML
-     * @param $description
-     * @return void
      * @throws \Exception
      */
     protected function savePreparedAndSwitchPage(CommerceML $CommerceML, $description)
     {
         $exportFile = Files::exchange(commerceml_config('dir_export', 'export'))->getPath('import_' . $this->currentPage() . '.xml');
         $xml_content = $CommerceML->translate($CommerceML->clearEmptyTags($CommerceML->getXML()), 'ru');
-        file_put_contents($exportFile, $xml_content); // Save to file for debug, because our plugin take info from output
+        // A copy for debugging only: Bitrix24 reads the XML from the response body, not this file.
+        file_put_contents($exportFile, $xml_content);
         $this->nextPageProgress($description . PHP_EOL . $xml_content);
     }
 }

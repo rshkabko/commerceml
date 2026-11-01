@@ -2,6 +2,7 @@
 
 namespace Flamix\CommerceML\Contracts;
 
+/** An entity that keeps the EXTERNAL_ID Bitrix24 matches it by, generating one when it is missing. */
 interface CanWorkWithExternalID
 {
     public static function editExternalID(): bool;

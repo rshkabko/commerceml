@@ -4,6 +4,7 @@ namespace Flamix\CommerceML\OneC;
 
 use SimpleXMLElement;
 
+/** Builds CommerceML XML from arrays and translates tag names between English and the Russian of 1C. */
 class CommerceML
 {
     private string $version = 'FlamixSimplyCommerceML';
@@ -15,35 +16,18 @@ class CommerceML
         $this->lang = $lang;
     }
 
-    /**
-     * Simply init like static.
-     *
-     * @param string $lang
-     * @return CommerceML
-     */
     public static function init(string $lang = 'en'): CommerceML
     {
         return new CommerceML($lang);
     }
 
-    /**
-     * Change lang.
-     *
-     * @param string $lang
-     * @return $this
-     */
     public function setLang(string $lang): CommerceML
     {
         $this->lang = $lang;
         return $this;
     }
 
-    /**
-     * Get XML Data like a object or array.
-     *
-     * @param bool $as_array
-     * @return mixed|SimpleXMLElement
-     */
+    /** @return array|SimpleXMLElement The array goes through json_encode(): a single child is an object, not a list of one. */
     public function getData(bool $as_array = false)
     {
         if ($as_array)
@@ -52,37 +36,18 @@ class CommerceML
         return $this->data;
     }
 
-    /**
-     * Get XML Data like a XML.
-     *
-     * @return string
-     */
     public function getXML(): string
     {
         return $this->data->asXML();
     }
 
-    /**
-     * Save XML data to file like a XML.
-     *
-     * @param string $file
-     * @return $this
-     */
     public function saveToFile(string $file): CommerceML
     {
         $this->data->asXML($file);
         return $this;
     }
 
-    /**
-     * Init SimpleXMLElement object from STRING.
-     *
-     * Ex, parse file content to SimpleXMLElement object
-     *
-     * @param string $file_content
-     * @return $this
-     * @throws \Exception
-     */
+    /** @throws \Exception */
     public function setFromString(string $file_content): CommerceML
     {
         $this->data = new SimpleXMLElement($file_content);
@@ -90,11 +55,9 @@ class CommerceML
     }
 
     /**
-     * Init SimpleXMLElement object from ARRAY.
+     * Appends the array to the root translated to $lang; the array keys are written as given, not translated.
      *
-     * @param array $data
-     * @param string|null $starting_data Must be valid XML
-     * @return $this
+     * @param string|null $starting_data Root XML to append to instead of the default CommercialInformation.
      * @throws \Exception
      */
     public function setArray(array $data, ?string $starting_data = null): CommerceML
@@ -104,11 +67,6 @@ class CommerceML
         return $this;
     }
 
-    /**
-     * Default starting SimpleXMLElement Data.
-     *
-     * @return string
-     */
     private function exportPrepareData(): string
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
@@ -119,19 +77,11 @@ class CommerceML
                 ></CommercialInformation>';
     }
 
-    /**
-     * Convert array to xml.
-     *
-     * Main classes :)
-     *
-     * @param array $data
-     * @param SimpleXMLElement $xml_data
-     * @return SimpleXMLElement
-     */
+    /** A 'code' key names the tag, a 'value' key is its text, a numeric key without 'code' becomes item_<n>. */
     public static function array_to_xml(array $data, SimpleXMLElement &$xml_data): SimpleXMLElement
     {
         foreach ($data as $key => $value) {
-            // Because XML can have same KEYs, ex: price, etc.
+            // 'code' because PHP keys are unique and XML repeats tags: several <price> in one <prices>.
             if (isset($value['code'])) {
                 $key = $value['code'];
                 unset($value['code']);
@@ -144,7 +94,6 @@ class CommerceML
                 $subNode = $xml_data->addChild($key);
                 self::array_to_xml($value, $subNode);
             } else if (isset($value['value'])) {
-                // If we pass "code", and want use custom value (if our value array or bad)
                 $xml_data->addChild("$key", mb_convert_encoding(htmlspecialchars($value['value']), 'utf-8', mb_detect_encoding($value['value'])));
             } else {
                 $xml_data->addChild("$key", mb_convert_encoding(htmlspecialchars($value), 'utf-8', mb_detect_encoding($value)));
@@ -154,16 +103,7 @@ class CommerceML
         return $xml_data;
     }
 
-    /**
-     * Translate content.
-     *
-     * Native CommerceML use Russian language :(
-     * In our plugin we try to don't use this lang, but in some case we need for compatibility
-     *
-     * @param string $content Content to translate
-     * @param string $lang_to In which lang we will translate
-     * @return string Translated content
-     */
+    /** Renames the tags of translate.php: 'en' turns Russian into English, any other value English into Russian. */
     public function translate(string $content, string $lang_to = 'en'): string
     {
         $translate_words = include(__DIR__ . '/../translate.php');
@@ -188,13 +128,7 @@ class CommerceML
         return preg_replace_callback($pattern, fn($match) => '<' . $match[1] . $tags[$match[2]], $content);
     }
 
-    /**
-     * Translate file content.
-     *
-     * @param string $filepath Full file path
-     * @param string $lang_to In which lang we will translate
-     * @return string Translated content
-     */
+    /** Translates the file and writes it back in place. */
     public function translateFile(string $filepath, string $lang_to = 'en'): string
     {
         $content = @file_get_contents($filepath);
@@ -203,14 +137,7 @@ class CommerceML
         return $content;
     }
 
-    /**
-     * Delete empty tags.
-     *
-     * ONLY ENGLISH
-     *
-     * @param string $content
-     * @return string
-     */
+    /** Drops <tag/>; only [a-zA-Z] names match, so run it before translating to Russian. */
     public function clearEmptyTags(string $content): string
     {
         return preg_replace("/<[a-zA-Z]+\/>/", "", $content);

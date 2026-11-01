@@ -4,24 +4,19 @@ namespace Flamix\CommerceML\Operations;
 
 use ZipArchive;
 
+/** A folder under FLAMIX_LOGS_PATH/commerceml/ that holds the exchanged files. */
 class Files
 {
     private string $working_dir;
 
-    /**
-     * @param string $working_dir Pass when init plugin
-     */
     public function __construct(string $working_dir)
     {
         $this->working_dir = $working_dir;
     }
 
     /**
-     * Init exchange dir and you can work...
-     * Files::exchange()->getPath()
+     * Creates and returns FLAMIX_LOGS_PATH/commerceml/<dir>/.
      *
-     * @param string $dir Can set sub folder, ex: import, upload, etc
-     * @return Files
      * @throws \Exception
      */
     public static function exchange(string $dir = ''): Files
@@ -34,37 +29,19 @@ class Files
         });
     }
 
-    /**
-     * Return path
-     *
-     * @param string $dir
-     * @return string
-     */
     public function getPath(string $dir = ''): string
     {
         return $this->working_dir . $dir;
     }
 
-    /**
-     * Creating file with content
-     *
-     * @param string $name
-     * @param string $content
-     * @return $this
-     */
+    /** Overwrites the file, so a second mode=file with the same name starts it over. */
     public function create(string $name, string $content = ''): Files
     {
         file_put_contents($this->getPath($name), $content);
         return $this;
     }
 
-    /**
-     * Get file contents
-     *
-     * @param string $file
-     * @return string
-     * @throws \Exception
-     */
+    /** @throws \Exception */
     public function content(string $file = ''): string
     {
         if (!file_exists($this->getPath($file)))
@@ -80,24 +57,13 @@ class Files
         return $content;
     }
 
-    /**
-     * Create new directory
-     *
-     * @param string $dir Sub folder
-     * @return $this
-     */
     public function createDirectory(string $dir = ''): Files
     {
         @mkdir($this->getPath($dir), 0755, true);
         return $this;
     }
 
-    /**
-     * Delete directory with files
-     *
-     * @param string $dir
-     * @return $this
-     */
+    /** Deletes the files in the folder and the folder itself. */
     public function clearDirectory(string $dir = ''): Files
     {
         $dirPath = $this->getPath($dir);
@@ -115,24 +81,13 @@ class Files
         return $this;
     }
 
-    /**
-     * Delete file
-     *
-     * @param string $filename
-     * @return $this
-     */
     public function deleteFile(string $filename = ''): Files
     {
         @unlink($this->getPath($filename));
         return $this;
     }
 
-    /**
-     * Upload file when its came from BODY like binary
-     *
-     * @param string $file
-     * @return void
-     */
+    /** Appends php://input to the file and ends the request with success. */
     public function uploadBinary(string $file = ''): void
     {
         $file_data = file_get_contents("php://input");
@@ -149,12 +104,7 @@ class Files
         }
     }
 
-    /**
-     * Find file in folder by pattern
-     *
-     * @param string $file_pattern
-     * @return array
-     */
+    /** File names in the folder that contain the substring, keyed as scandir() returned them. */
     public function find(string $file_pattern): array
     {
         $files = scandir($this->working_dir);
@@ -165,24 +115,13 @@ class Files
         return $files;
     }
 
-    /**
-     * Checking if file exist
-     *
-     * @param string $file_pattern Example: .zip, rests.xml, .xml, etc.
-     * @return bool
-     */
+    /** Whether any file name contains the substring: .zip, rests.xml, .xml. */
     public function exist(string $file_pattern): bool
     {
         return (bool)count($this->find($file_pattern));
     }
 
-    /**
-     * Extract file
-     *
-     * @param string $filename
-     * @return $this
-     * @throws \Exception
-     */
+    /** @throws \Exception */
     public function extract(string $filename): Files
     {
         $zip = new ZipArchive;
@@ -190,7 +129,12 @@ class Files
         if ($res !== true)
             throw new \Exception('Error when extract zip!');
 
-        $zip->extractTo($this->getPath());
+        // Only flat .xml entries: an archive could otherwise drop .php files or ../ paths into the folder.
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = basename((string) $zip->getNameIndex($i));
+            if (preg_match('/^[\w.-]+\.xml$/i', $name))
+                file_put_contents($this->getPath($name), $zip->getFromIndex($i));
+        }
         $zip->close();
 
         return $this;

@@ -2,27 +2,18 @@
 
 namespace Flamix\CommerceML\OneC;
 
+/** Prepares callback arrays for CommerceML::setArray(): drops empty fields, sets 'code', reshapes special fields. */
 class Converter
 {
-    /**
-     * Replace products keys if exist translate
-     *
-     * @param array $entities
-     * @param string $code
-     * @param string|null $closure_key Key to find Closure (Check Categories)
-     * @return array
-     */
+    /** @param string|null $closure_key A nested key prepared the same way, recursively: 'categories' for the category tree. */
     public static function prepareToCommerceMLStructure(array $entities, string $code = '', ?string $closure_key = null): array
     {
         foreach ($entities as &$entity) {
-            // Clear empty elements
             $entity = array_filter($entity, fn($value) => !is_null($value) && $value !== '');
 
-            // Run closure if key exist
             if ($closure_key && !empty($entity[$closure_key]))
                 $entity[$closure_key] = self::prepareToCommerceMLStructure($entity[$closure_key], $code, $closure_key);
 
-            // Set CommerceML special 'code' attribute
             if (!empty($code))
                 $entity['code'] = $code;
 
@@ -42,37 +33,21 @@ class Converter
         return $entities;
     }
 
-    /**
-     * Return special method to more modifications of variable, ex: attrPrice($value);
-     *
-     * @param string $method
-     * @return string
-     */
     private static function getSpecialMethodName(string $method): string
     {
         return 'attr' . ucfirst($method);
     }
 
-    /**
-     * Checking is we have special method to modify variable, ex: attrPrice($value);
-     *
-     * @param string $method
-     * @return bool
-     */
+    /** A field with an attr<Field>() method here is reshaped by it: property_value, category. */
     private static function isHaveSpecialMethod(string $method): bool
     {
         return method_exists(static::class, self::getSpecialMethodName($method));
     }
 
-    /**
-     * Обработка поля "ЗначенияСвойства"
-     * @param array $values
-     * @return array
-     */
+    /** ['pa_color' => 'Red' or ['Red', 'Blue']] into ЗначенияСвойства entries. */
     private static function attrProperty_value(array $values): array
     {
         foreach ($values as $id => &$value) {
-            // Multi
             if (is_array($value)) {
                 foreach ($value as $key => $option) {
                     $value[$key] = [
@@ -80,7 +55,6 @@ class Converter
                         'value' => $option,
                     ];
                 }
-                // Single
             } else {
                 $option = $value;
                 $value = [
@@ -96,11 +70,7 @@ class Converter
         return $values;
     }
 
-    /**
-     * Обработка поля "Группа"
-     * @param array $values
-     * @return array
-     */
+    /** A list of category ids into <id> entries. */
     private static function attrCategory(array $values): array
     {
         foreach ($values as &$value) {

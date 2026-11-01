@@ -2,6 +2,7 @@
 
 namespace Flamix\CommerceML\Contracts;
 
+/** The handlers Import calls per offer with its EXTERNAL_ID. */
 interface HasAllImportHandlers
 {
     public static function restsHandler($product_id, array $rests): bool;
